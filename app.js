@@ -64,15 +64,24 @@ $('searchFoods').onclick=async()=>{
    if(!ciqualReady){$('searchStatus').textContent='Chargement de la base alimentaire… Réessaie dans un instant.';return}
    const results=ciqualFoods.map(f=>{
      const n=normFood(f.name), tokens=n.split(' ');
-     let score=0;
+     let score=0, direct=0;
      for(const t of terms){
-       if(n===t) score+=12;
-       else if(n.startsWith(t)) score+=7;
-       else if(tokens.some(w=>w.startsWith(t))) score+=5;
-       else if(n.includes(t)) score+=3;
+       // Treat singular/plural as equivalent (lentille/lentilles, haricot/haricots).
+       const stem=t.endsWith('s')?t.slice(0,-1):t;
+       const matching=tokens.filter(w=>w===t||w===stem||w.startsWith(stem)||stem.startsWith(w));
+       if(matching.length){
+         score+=matching.length*8;
+         if(tokens[0]===t||tokens[0]===stem||tokens[0].startsWith(stem)) {score+=30;direct++;}
+       } else if(n.includes(t)) score+=1;
      }
-     if(terms.length>1 && terms.every(t=>n.includes(t))) score+=5;
-     return {f,score};
+     if(terms.length>1 && terms.every(t=>{
+       const stem=t.endsWith('s')?t.slice(0,-1):t;
+       return tokens.some(w=>w===t||w===stem||w.startsWith(stem)||stem.startsWith(w));
+     })) score+=12;
+     // Prefer raw/basic ingredients over prepared dishes when the query names the ingredient.
+     if(direct>0 && /fruits, legumes|legumineuses/.test(normFood(f.group))) score+=12;
+     if(direct>0 && /preemballe|soupe|salade|galette|saucisse|plat/.test(n)) score-=18;
+     return {f,score,direct};
    }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.f.name.localeCompare(b.f.name,'fr')).slice(0,30).map(x=>x.f);
    $('searchStatus').textContent=results.length?`${results.length} aliments trouvés · valeurs pour 100 g`:'Aucun résultat. Essaie un terme plus court ou passe en Produits de marque.';
    $('searchResults').innerHTML=results.map((f,i)=>`<button type="button" class="result-item" data-generic="${i}"><strong>${esc(f.name)}</strong><small>Pour 100 g : ${Math.round(f.kcal)} kcal · P ${fmt(f.protein)} g · G ${fmt(f.carbs)} g · L ${fmt(f.fat)} g</small></button>`).join('');
