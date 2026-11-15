@@ -61,3 +61,11 @@ VERSION 1.3.1 — CORRECTIF DE MISE À JOUR
 - Nouvelle stratégie de cache : le nouvel écran HTML est récupéré sur le réseau en priorité.
 - Les fichiers du nouveau cache sont téléchargés sans réutiliser le cache HTTP.
 - Le numéro de cache Service Worker est incrémenté en 1.3.1.
+
+VERSION 1.3.2 — NOUVELLE ICÔNE PHANTOM
+- Icônes iPhone 192x192 et 512x512 remplacées par le nouvel emblème nutrition vert/noir.
+- Numéro de version et cache Service Worker incrémentés en 1.3.2.
+
+VERSION 1.3.3 — NOUVELLE ICÔNE PHANTOM
+- Remplacement des icônes PWA 192x192 et 512x512 par le nouveau logo minimaliste pomme/cardio.
+- Incrément de version du Service Worker pour mettre à jour le cache des icônes.
