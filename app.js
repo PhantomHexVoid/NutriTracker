@@ -1,7 +1,8 @@
 const $=id=>document.getElementById(id);
 const defaults={calories:2000,protein:130,carbs:220,fat:70};
-let goals={...defaults,...JSON.parse(localStorage.getItem('nt-goals')||'{}')};
-let data=JSON.parse(localStorage.getItem('nt-days')||'{}');
+function readStored(key,fallback){try{const value=JSON.parse(localStorage.getItem(key)||'null');return value&&typeof value==='object'?value:fallback}catch(e){return fallback}}
+let goals={...defaults,...readStored('nt-goals',{})};
+let data=readStored('nt-days',{});
 let selectedDate=isoDate(new Date()), pendingFood=null;
 const meals=['Petit-déjeuner','Déjeuner','Dîner','Collation'];
 function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
@@ -89,7 +90,8 @@ $('searchFoods').onclick=async()=>{
    document.querySelectorAll('[data-brand]').forEach(b=>b.onclick=()=>{const p=products[Number(b.dataset.brand)],n=p.nutriments;chooseFood({name:p.product_name,kcal:n['energy-kcal_100g']||0,protein:n.proteins_100g||0,carbs:n.carbohydrates_100g||0,fat:n.fat_100g||0})});
  }catch(e){$('searchStatus').textContent='Recherche impossible. Vérifie ta connexion ou utilise les aliments courants.'}
 };
-$('closeFoodDialog').onclick=()=>{$('foodDialog').close()};
+const closeFoodDialog=$('closeFoodDialog');
+if(closeFoodDialog) closeFoodDialog.onclick=()=>{$('foodDialog').close()};
 $('saveFood').onclick=()=>{let name=$('foodName').value.trim(),qty=Number($('foodQty').value),kcal=Number($('foodKcal').value),p=Number($('foodProtein').value),c=Number($('foodCarbs').value),f=Number($('foodFat').value);if(!name||qty<=0||!Number.isFinite(kcal)||!Number.isFinite(p)||!Number.isFinite(c)||!Number.isFinite(f)){alert('Complète le nom, la quantité et les valeurs nutritionnelles.');return}const factor=qty/100;day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,qty,meal:$('mealType').value,calories:kcal*factor,protein:p*factor,carbs:c*factor,fat:f*factor});save();$('foodDialog').close();render()};
 $('settingsBtn').onclick=$('navSettings').onclick=()=>{for(const k of Object.keys(goals))$('goal'+k[0].toUpperCase()+k.slice(1)).value=goals[k];$('settingsDialog').showModal()};
 $('saveGoals').onclick=()=>{for(const k of Object.keys(goals)){const v=Number($('goal'+k[0].toUpperCase()+k.slice(1)).value);if(v>0)goals[k]=v}localStorage.setItem('nt-goals',JSON.stringify(goals));render()};
@@ -160,8 +162,8 @@ $('installUpdate').onclick=()=>{
 setupUpdates();
 render();
 
-// Branded splash screen: brief welcome on each app opening
-window.addEventListener('load',()=>{
-  const splash=document.getElementById('splash');
-  if(splash) setTimeout(()=>splash.classList.add('hide'),1500);
-});
+// Failsafe splash dismissal; independent from data loading and app initialization.
+function dismissSplash(){const splash=document.getElementById('splash');if(splash)splash.classList.add('hide')}
+window.addEventListener('DOMContentLoaded',()=>setTimeout(dismissSplash,1800),{once:true});
+window.addEventListener('load',()=>setTimeout(dismissSplash,1800),{once:true});
+setTimeout(dismissSplash,4000);

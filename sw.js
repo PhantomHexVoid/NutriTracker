@@ -1,4 +1,4 @@
-const APP_VERSION='2.0.0';
+const APP_VERSION='2.0.1';
 const CACHE='nutritracker-'+APP_VERSION;
 const FILES=['./','./index.html','./style.css','./app.js','./manifest.json','./icon-192.png','./icon-512.png','./ciqual-2025.json'];
 self.addEventListener('install',event=>{
