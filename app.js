@@ -3,7 +3,7 @@ const defaults={calories:2000,protein:130,carbs:220,fat:70};
 function readStored(key,fallback){try{const value=JSON.parse(localStorage.getItem(key)||'null');return value&&typeof value==='object'?value:fallback}catch(e){return fallback}}
 let goals={...defaults,...readStored('nt-goals',{})};
 let data=readStored('nt-days',{});
-let selectedDate=isoDate(new Date()), pendingFood=null;
+let selectedDate=isoDate(new Date()), pendingFood=null, editingFoodId=null, foodValuesPer100=false;
 const meals=['Petit-déjeuner','Déjeuner','Dîner','Collation'];
 function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function day(){if(!data[selectedDate])data[selectedDate]=[];return data[selectedDate]}
@@ -18,8 +18,13 @@ function render(){
   $('caloriePercent').textContent=Math.round(pct)+' %';$('calorieBar').style.width=pct+'%';
   $('calorieRemaining').textContent=t.calories<=goals.calories?`${Math.round(goals.calories-t.calories)} kcal restantes`:`${Math.round(t.calories-goals.calories)} kcal au-dessus de l'objectif`;
   for(const k of ['protein','carbs','fat']){$(k+'Now').textContent=fmt(t[k])+' g';$(k+'Bar').style.width=Math.min(100,t[k]/goals[k]*100)+'%';$(k+'Meta').textContent=`Objectif : ${goals[k]} g`}
-  $('mealList').innerHTML=meals.map(m=>{const group=items.filter(x=>x.meal===m),sum=totals(group);return `<section class="meal-group"><div class="meal-title"><span>${m}</span><small>${Math.round(sum.calories)} kcal</small></div>${group.length?group.map(x=>`<div class="food-row"><div><strong>${esc(x.name)}</strong><small>${x.qty} g · P ${fmt(x.protein)} g · G ${fmt(x.carbs)} g · L ${fmt(x.fat)} g</small></div><div class="food-kcal">${Math.round(x.calories)} kcal <button class="remove-food" data-id="${x.id}" aria-label="Supprimer">×</button></div></div>`).join(''):'<div class="empty">Aucun aliment ajouté</div>'}</section>`}).join('');
-  document.querySelectorAll('.remove-food').forEach(b=>b.onclick=()=>{data[selectedDate]=day().filter(x=>x.id!==b.dataset.id);save();render()});
+  $('mealList').innerHTML=meals.map(m=>{const group=items.filter(x=>x.meal===m),sum=totals(group);return `<section class="meal-group"><div class="meal-title"><span>${m}</span><small>${Math.round(sum.calories)} kcal</small></div>${group.length?group.map(x=>`<div class="food-row editable-food" data-edit-id="${x.id}" role="button" tabindex="0" aria-label="Modifier ${esc(x.name)}"><div><strong>${esc(x.name)}</strong><small>${x.qty} g · P ${fmt(x.protein)} g · G ${fmt(x.carbs)} g · L ${fmt(x.fat)} g</small></div><div class="food-kcal">${Math.round(x.calories)} kcal <button class="remove-food" data-id="${x.id}" aria-label="Supprimer">×</button></div></div>`).join(''):'<div class="empty">Aucun aliment ajouté</div>'}</section>`}).join('');
+  document.querySelectorAll('.remove-food').forEach(b=>b.onclick=e=>{e.stopPropagation();data[selectedDate]=day().filter(x=>x.id!==b.dataset.id);save();render()});
+  document.querySelectorAll('.editable-food').forEach(row=>{
+    const edit=()=>editFood(row.dataset.editId);
+    row.onclick=e=>{if(!e.target.closest('.remove-food'))edit()};
+    row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();edit()}};
+  });
   renderHistory();
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -28,7 +33,7 @@ function renderHistory(){
   $('historyPanel').innerHTML=dates.length?dates.map(d=>{let c=totals(data[d]).calories;return `<div class="history-row"><span>${new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</span><div class="history-track"><i style="width:${Math.min(100,c/goals.calories*100)}%"></i></div><b>${Math.round(c)} kcal</b></div>`}).join(''):'<div class="empty">Ton historique apparaîtra ici dès tes premiers repas.</div>';
   $('fullHistory').innerHTML=dates.length?dates.map(d=>{let t=totals(data[d]);return `<div class="history-entry">${prettyDate(d)}<b>${Math.round(t.calories)} kcal</b><div class="hint">Protéines ${fmt(t.protein)} g · Glucides ${fmt(t.carbs)} g · Lipides ${fmt(t.fat)} g</div></div>`}).join(''):'<p class="hint">Aucune journée enregistrée pour le moment.</p>';
 }
-function openFood(){pendingFood=null;activeFoodSource='generic';document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b.dataset.source==='generic'));$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche dans la base Ciqual 2025 (aliments génériques).';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
+function openFood(){pendingFood=null;editingFoodId=null;foodValuesPer100=true;setFoodFormMode();activeFoodSource='generic';document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b.dataset.source==='generic'));$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche dans la base Ciqual 2025 (aliments génériques).';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('searchPane').hidden=b.dataset.tab!=='search';$('manualPane').hidden=b.dataset.tab!=='manual'});
 $('addBtn').onclick=openFood;
 let activeFoodSource='generic';
@@ -42,9 +47,30 @@ fetch('./ciqual-2025.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);
 });
 // Normalize accents, punctuation and plurals for forgiving local search.
 function normFood(s){return String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function setFoodFormMode(){
+  const suffix=foodValuesPer100?' / 100 g':' (portion)';
+  $('foodKcal').parentElement.firstChild.textContent='Calories'+suffix;
+  $('foodProtein').parentElement.firstChild.textContent='Prot.'+suffix;
+  $('foodCarbs').parentElement.firstChild.textContent='Gluc.'+suffix;
+  $('foodFat').parentElement.firstChild.textContent='Lip.'+suffix;
+  const hint=$('foodManualHint');
+  if(hint)hint.textContent='Renseigne les valeurs nutritionnelles pour 100 g, puis indique la quantité que tu as mangée. Le total sera calculé automatiquement.';
+  $('saveFood').textContent=editingFoodId?'Enregistrer les modifications':'Ajouter au journal';
+}
+function editFood(id){
+  const item=day().find(x=>x.id===id);if(!item)return;
+  editingFoodId=id;foodValuesPer100=true;pendingFood=null;setFoodFormMode();
+  const divisor=item.qty/100||1;
+  $('foodName').value=item.name;$('foodQty').value=item.qty;
+  $('foodKcal').value=fmt(item.calories/divisor);$('foodProtein').value=fmt(item.protein/divisor);
+  $('foodCarbs').value=fmt(item.carbs/divisor);$('foodFat').value=fmt(item.fat/divisor);
+  $('mealType').value=item.meal;
+  $('searchResults').innerHTML='';$('searchStatus').textContent='Modifie les informations puis enregistre.';
+  document.querySelector('[data-tab="manual"]').click();$('foodDialog').showModal();
+}
 function chooseFood(item){
   pendingFood={name:item.name,qty:100,kcal:Number(item.kcal)||0,protein:Number(item.protein)||0,carbs:Number(item.carbs)||0,fat:Number(item.fat)||0};
-  document.querySelector('[data-tab="manual"]').click();
+  foodValuesPer100=true;setFoodFormMode();document.querySelector('[data-tab="manual"]').click();
   $('foodName').value=item.name;$('foodQty').value=100;$('foodKcal').value=pendingFood.kcal;
   $('foodProtein').value=pendingFood.protein;$('foodCarbs').value=pendingFood.carbs;$('foodFat').value=pendingFood.fat;
   $('searchStatus').textContent='Aliment sélectionné. Vérifie la quantité et les valeurs avant ajout.';
@@ -101,7 +127,15 @@ $('searchFoods').onclick=async()=>{
 };
 const closeFoodDialog=$('closeFoodDialog');
 if(closeFoodDialog) closeFoodDialog.onclick=()=>{$('foodDialog').close()};
-$('saveFood').onclick=()=>{let name=$('foodName').value.trim(),qty=Number($('foodQty').value),kcal=Number($('foodKcal').value),p=Number($('foodProtein').value),c=Number($('foodCarbs').value),f=Number($('foodFat').value);if(!name||qty<=0||!Number.isFinite(kcal)||!Number.isFinite(p)||!Number.isFinite(c)||!Number.isFinite(f)){alert('Complète le nom, la quantité et les valeurs nutritionnelles.');return}const factor=qty/100;day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,qty,meal:$('mealType').value,calories:kcal*factor,protein:p*factor,carbs:c*factor,fat:f*factor});save();$('foodDialog').close();render()};
+$('saveFood').onclick=()=>{
+  let name=$('foodName').value.trim(),qty=Number($('foodQty').value),kcal=Number($('foodKcal').value),p=Number($('foodProtein').value),c=Number($('foodCarbs').value),f=Number($('foodFat').value);
+  if(!name||qty<=0||!Number.isFinite(kcal)||!Number.isFinite(p)||!Number.isFinite(c)||!Number.isFinite(f)){alert('Complète le nom, la quantité et les valeurs nutritionnelles.');return}
+  const factor=qty/100;
+  const values={name,qty,meal:$('mealType').value,calories:kcal*factor,protein:p*factor,carbs:c*factor,fat:f*factor};
+  if(editingFoodId){const item=day().find(x=>x.id===editingFoodId);if(item)Object.assign(item,values)}
+  else day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),...values});
+  save();$('foodDialog').close();render()
+};
 $('settingsBtn').onclick=$('navSettings').onclick=()=>{for(const k of Object.keys(goals))$('goal'+k[0].toUpperCase()+k.slice(1)).value=goals[k];$('settingsDialog').showModal()};
 $('saveGoals').onclick=()=>{for(const k of Object.keys(goals)){const v=Number($('goal'+k[0].toUpperCase()+k.slice(1)).value);if(v>0)goals[k]=v}localStorage.setItem('nt-goals',JSON.stringify(goals));render()};
 $('prevDay').onclick=()=>{let d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()-1);selectedDate=isoDate(d);render()};

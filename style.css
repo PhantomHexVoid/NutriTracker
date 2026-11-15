@@ -72,3 +72,8 @@ body[data-theme="dark"] .app-version{color:#a1afa7}
 .source-tab.active{background:var(--mint);border-color:transparent;color:var(--green)}
 body[data-theme="dark"] .source-tab{border-color:#34443b;color:#b7c5bc}
 body[data-theme="dark"] .source-tab.active{background:#244638;color:#c5f0d1}
+
+/* V2.0.3 : foods in the journal can be opened to edit */
+.food-row.editable-food{cursor:pointer;transition:background .15s ease}
+.food-row.editable-food:active{background:rgba(160,220,185,.08)}
+.food-row.editable-food:focus-visible{outline:2px solid var(--accent,#9bd9b2);outline-offset:3px}
