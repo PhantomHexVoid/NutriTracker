@@ -27,3 +27,42 @@ dialog{border:0;border-radius:22px;padding:0;width:min(94vw,520px);max-height:88
 .centered{text-align:center}
 .update-title{text-align:center;font-size:22px;line-height:1.2;margin:9px 0}
 .update-copy{text-align:center;color:#78857f;font-size:12px;line-height:1.6;margin:0 8px 15px}
+
+
+/* Theme toggle */
+.top-actions{display:flex;gap:8px;align-items:center}
+.theme-toggle{font-size:21px}
+body[data-theme="dark"]{
+  --ink:#edf4ef;--muted:#a1afa7;--green:#142c25;--mint:#244638;--line:#2b3932;--bg:#0e1512;--white:#18221d;
+  background:var(--bg);color:var(--ink)
+}
+body[data-theme="dark"] .topbar{background:#101d18}
+body[data-theme="dark"] .calorie-card,
+body[data-theme="dark"] .macro-card,
+body[data-theme="dark"] .meal-group,
+body[data-theme="dark"] .history-card{background:#18221d;border-color:#2b3932;box-shadow:none}
+body[data-theme="dark"] .progress,
+body[data-theme="dark"] .mini-progress,
+body[data-theme="dark"] .history-track{background:#2a3730}
+body[data-theme="dark"] .pill{background:#244638;color:#bce7c9}
+body[data-theme="dark"] .round-btn,
+body[data-theme="dark"] .icon-btn{background:#202d26;border-color:#34443b;color:#edf4ef}
+body[data-theme="dark"] .today-btn,
+body[data-theme="dark"] .text-btn{color:#a9d9b8}
+body[data-theme="dark"] .food-row{border-color:#29372f}
+body[data-theme="dark"] .remove-food{background:#29372f;color:#c5d0c9}
+body[data-theme="dark"] .bottom-nav{background:#121b16ed;border-color:#2b3932}
+body[data-theme="dark"] .nav-item{color:#829188}
+body[data-theme="dark"] .nav-item.active{color:#a9d9b8}
+body[data-theme="dark"] dialog{background:#18221d;color:#edf4ef}
+body[data-theme="dark"] dialog::backdrop{background:#000b}
+body[data-theme="dark"] input,
+body[data-theme="dark"] select{background:#101914;border-color:#34443b;color:#edf4ef}
+body[data-theme="dark"] .close-btn,
+body[data-theme="dark"] .secondary-btn,
+body[data-theme="dark"] .tabs{background:#29372f;color:#dce8df}
+body[data-theme="dark"] .tab.active{background:#18221d;color:#bce7c9}
+body[data-theme="dark"] .result-item{background:#18221d;border-color:#34443b;color:#edf4ef}
+body[data-theme="dark"] .history-entry{border-color:#2b3932}
+body[data-theme="dark"] .splash{background:#101d18}
+body[data-theme="dark"] .app-version{color:#a1afa7}

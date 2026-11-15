@@ -44,3 +44,8 @@ MISE À JOUR AUTOMATIQUE (à partir de cette version 1.2.0)
 - Pour publier une version ultérieure : modifier APP_VERSION dans sw.js ET CACHE (garder le même préfixe), mettre à jour le numéro affiché dans index.html, puis téléverser/remplacer les fichiers du dépôt GitHub.
 - Les données du journal sont conservées dans localStorage sur le même domaine. Ne change pas le domaine et ne modifie pas la clé nt-days sans migration.
 - La mise à jour dépend du comportement du Service Worker sur iOS et peut être retardée par iOS si l'application n'est pas relancée. À la réouverture, le navigateur revérifie le worker.
+
+VERSION 1.3.0 — THÈME SOMBRE
+- Ajout d'un bouton lune/soleil dans l'en-tête.
+- Le thème choisi est mémorisé localement sur l'appareil.
+- Le cache du Service Worker est passé en version 1.3.0 pour déclencher la mise à jour.
