@@ -66,3 +66,9 @@ body[data-theme="dark"] .result-item{background:#18221d;border-color:#34443b;col
 body[data-theme="dark"] .history-entry{border-color:#2b3932}
 body[data-theme="dark"] .splash{background:#101d18}
 body[data-theme="dark"] .app-version{color:#a1afa7}
+
+.search-source-tabs{display:flex;gap:7px;margin:12px 0 4px}
+.source-tab{flex:1;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:10px 6px;font-size:11px;font-weight:700}
+.source-tab.active{background:var(--mint);border-color:transparent;color:var(--green)}
+body[data-theme="dark"] .source-tab{border-color:#34443b;color:#b7c5bc}
+body[data-theme="dark"] .source-tab.active{background:#244638;color:#c5f0d1}

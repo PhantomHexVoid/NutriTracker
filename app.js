@@ -27,10 +27,69 @@ function renderHistory(){
   $('historyPanel').innerHTML=dates.length?dates.map(d=>{let c=totals(data[d]).calories;return `<div class="history-row"><span>${new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</span><div class="history-track"><i style="width:${Math.min(100,c/goals.calories*100)}%"></i></div><b>${Math.round(c)} kcal</b></div>`}).join(''):'<div class="empty">Ton historique apparaîtra ici dès tes premiers repas.</div>';
   $('fullHistory').innerHTML=dates.length?dates.map(d=>{let t=totals(data[d]);return `<div class="history-entry">${prettyDate(d)}<b>${Math.round(t.calories)} kcal</b><div class="hint">Protéines ${fmt(t.protein)} g · Glucides ${fmt(t.carbs)} g · Lipides ${fmt(t.fat)} g</div></div>`}).join(''):'<p class="hint">Aucune journée enregistrée pour le moment.</p>';
 }
-function openFood(){pendingFood=null;$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche en ligne dans la base Open Food Facts.';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
+function openFood(){pendingFood=null;activeFoodSource='generic';document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b.dataset.source==='generic'));$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche dans la base Ciqual 2025 (aliments génériques).';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('searchPane').hidden=b.dataset.tab!=='search';$('manualPane').hidden=b.dataset.tab!=='manual'});
 $('addBtn').onclick=openFood;
-$('searchFoods').onclick=async()=>{const q=$('foodSearch').value.trim();if(!q)return;$('searchStatus').textContent='Recherche en cours…';$('searchResults').innerHTML='';try{const url='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=12&fields=product_name,brands,nutriments,quantity';const r=await fetch(url);const j=await r.json();const products=(j.products||[]).filter(p=>p.product_name&&p.nutriments);$('searchStatus').textContent=products.length?`${products.length} résultats. Choisis un produit :`:'Aucun résultat. Essaie une autre recherche ou la saisie manuelle.';$('searchResults').innerHTML=products.map((p,i)=>`<button type="button" class="result-item" data-result="${i}"><strong>${esc(p.product_name)} ${p.brands?'· '+esc(p.brands):''}</strong><small>Pour 100 g : ${Math.round(p.nutriments['energy-kcal_100g']||0)} kcal · P ${fmt(p.nutriments.proteins_100g||0)} g · G ${fmt(p.nutriments.carbohydrates_100g||0)} g · L ${fmt(p.nutriments.fat_100g||0)} g</small></button>`).join('');document.querySelectorAll('[data-result]').forEach(btn=>btn.onclick=()=>{const p=products[Number(btn.dataset.result)],n=p.nutriments;pendingFood={name:p.product_name,qty:100,kcal:n['energy-kcal_100g']||0,protein:n.proteins_100g||0,carbs:n.carbohydrates_100g||0,fat:n.fat_100g||0};document.querySelector('[data-tab="manual"]').click();$('foodName').value=p.product_name;$('foodQty').value=100;$('foodKcal').value=pendingFood.kcal;$('foodProtein').value=pendingFood.protein;$('foodCarbs').value=pendingFood.carbs;$('foodFat').value=pendingFood.fat;$('searchStatus').textContent='Produit sélectionné. Vérifie la quantité et les valeurs avant ajout.'})}catch(e){$('searchStatus').textContent='Recherche impossible. Vérifie ta connexion ou utilise la saisie manuelle.'}};
+let activeFoodSource='generic';
+let ciqualFoods=[];
+let ciqualReady=false;
+fetch('./ciqual-2025.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(rows=>{
+  ciqualFoods=rows;ciqualReady=true;
+  if($('searchStatus')) $('searchStatus').textContent='Base Ciqual 2025 chargée · 3 484 aliments disponibles hors connexion après le premier chargement.';
+}).catch(()=>{
+  if($('searchStatus')) $('searchStatus').textContent='Base Ciqual indisponible. Recharge l’application avec une connexion Internet.';
+});
+// Normalize accents, punctuation and plurals for forgiving local search.
+function normFood(s){return String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function chooseFood(item){
+  pendingFood={name:item.name,qty:100,kcal:Number(item.kcal)||0,protein:Number(item.protein)||0,carbs:Number(item.carbs)||0,fat:Number(item.fat)||0};
+  document.querySelector('[data-tab="manual"]').click();
+  $('foodName').value=item.name;$('foodQty').value=100;$('foodKcal').value=pendingFood.kcal;
+  $('foodProtein').value=pendingFood.protein;$('foodCarbs').value=pendingFood.carbs;$('foodFat').value=pendingFood.fat;
+  $('searchStatus').textContent='Aliment sélectionné. Vérifie la quantité et les valeurs avant ajout.';
+}
+document.querySelectorAll('.source-tab').forEach(btn=>btn.onclick=()=>{
+  activeFoodSource=btn.dataset.source;
+  document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b===btn));
+  $('searchStatus').textContent=activeFoodSource==='generic'?'Recherche dans les 3 484 aliments Ciqual 2025. Valeurs pour 100 g.':'Recherche de produits emballés dans Open Food Facts.';
+  $('searchResults').innerHTML='';
+});
+$('searchFoods').onclick=async()=>{
+ const q=$('foodSearch').value.trim(); if(!q){$('searchStatus').textContent='Saisis un aliment à rechercher.';return}
+ $('searchStatus').textContent='Recherche en cours…';$('searchResults').innerHTML='';
+ if(activeFoodSource==='generic'){
+   const nq=normFood(q);
+   const terms=nq.split(' ').filter(Boolean);
+   if(!ciqualReady){$('searchStatus').textContent='Chargement de la base alimentaire… Réessaie dans un instant.';return}
+   const results=ciqualFoods.map(f=>{
+     const n=normFood(f.name), tokens=n.split(' ');
+     let score=0;
+     for(const t of terms){
+       if(n===t) score+=12;
+       else if(n.startsWith(t)) score+=7;
+       else if(tokens.some(w=>w.startsWith(t))) score+=5;
+       else if(n.includes(t)) score+=3;
+     }
+     if(terms.length>1 && terms.every(t=>n.includes(t))) score+=5;
+     return {f,score};
+   }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.f.name.localeCompare(b.f.name,'fr')).slice(0,30).map(x=>x.f);
+   $('searchStatus').textContent=results.length?`${results.length} aliments trouvés · valeurs pour 100 g`:'Aucun résultat. Essaie un terme plus court ou passe en Produits de marque.';
+   $('searchResults').innerHTML=results.map((f,i)=>`<button type="button" class="result-item" data-generic="${i}"><strong>${esc(f.name)}</strong><small>Pour 100 g : ${Math.round(f.kcal)} kcal · P ${fmt(f.protein)} g · G ${fmt(f.carbs)} g · L ${fmt(f.fat)} g</small></button>`).join('');
+   document.querySelectorAll('[data-generic]').forEach(b=>b.onclick=()=>chooseFood(results[Number(b.dataset.generic)]));
+   return;
+ }
+ try{
+   const url='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=20&fields=product_name,brands,nutriments,quantity,countries_tags';
+   const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+   const j=await r.json();
+   const products=(j.products||[]).filter(p=>p.product_name&&p.nutriments&&p.nutriments['energy-kcal_100g']!==undefined)
+    .sort((a,b)=>((b.countries_tags||[]).includes('en:france')?1:0)-((a.countries_tags||[]).includes('en:france')?1:0));
+   $('searchStatus').textContent=products.length?`${products.length} produits trouvés · vérifie l'étiquette`:'Aucun produit trouvé. Essaie une autre recherche.';
+   $('searchResults').innerHTML=products.map((p,i)=>`<button type="button" class="result-item" data-brand="${i}"><strong>${esc(p.product_name)} ${p.brands?'· '+esc(p.brands):''}</strong><small>Pour 100 g : ${Math.round(p.nutriments['energy-kcal_100g']||0)} kcal · P ${fmt(p.nutriments.proteins_100g||0)} g · G ${fmt(p.nutriments.carbohydrates_100g||0)} g · L ${fmt(p.nutriments.fat_100g||0)} g</small></button>`).join('');
+   document.querySelectorAll('[data-brand]').forEach(b=>b.onclick=()=>{const p=products[Number(b.dataset.brand)],n=p.nutriments;chooseFood({name:p.product_name,kcal:n['energy-kcal_100g']||0,protein:n.proteins_100g||0,carbs:n.carbohydrates_100g||0,fat:n.fat_100g||0})});
+ }catch(e){$('searchStatus').textContent='Recherche impossible. Vérifie ta connexion ou utilise les aliments courants.'}
+};
+$('closeFoodDialog').onclick=()=>{$('foodDialog').close()};
 $('saveFood').onclick=()=>{let name=$('foodName').value.trim(),qty=Number($('foodQty').value),kcal=Number($('foodKcal').value),p=Number($('foodProtein').value),c=Number($('foodCarbs').value),f=Number($('foodFat').value);if(!name||qty<=0||!Number.isFinite(kcal)||!Number.isFinite(p)||!Number.isFinite(c)||!Number.isFinite(f)){alert('Complète le nom, la quantité et les valeurs nutritionnelles.');return}const factor=qty/100;day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,qty,meal:$('mealType').value,calories:kcal*factor,protein:p*factor,carbs:c*factor,fat:f*factor});save();$('foodDialog').close();render()};
 $('settingsBtn').onclick=$('navSettings').onclick=()=>{for(const k of Object.keys(goals))$('goal'+k[0].toUpperCase()+k.slice(1)).value=goals[k];$('settingsDialog').showModal()};
 $('saveGoals').onclick=()=>{for(const k of Object.keys(goals)){const v=Number($('goal'+k[0].toUpperCase()+k.slice(1)).value);if(v>0)goals[k]=v}localStorage.setItem('nt-goals',JSON.stringify(goals));render()};

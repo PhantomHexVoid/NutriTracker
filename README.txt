@@ -74,3 +74,11 @@ VERSION 1.3.4 — ICÔNE EXACTE FOURNIE
 - Remplacement des icônes 192x192 et 512x512 par le visuel de référence fourni : fond carré anthracite, feuille bicolore et tracé ECG vert, sans contour de pomme.
 - Cache Service Worker incrémenté en 1.3.4.
 - Pour rafraîchir l'icône iOS, il peut être nécessaire de supprimer le raccourci de l'écran d'accueil puis de le recréer depuis Safari après publication. Les données stockées sur le site restent conservées si le domaine ne change pas.
+
+VERSION 1.4.0 — RECHERCHE ALIMENTAIRE ET FERMETURE DU POP-UP
+- Recherche locale améliorée pour aliments génériques courants (liste de démarrage, valeurs pour 100 g).
+- Recherche séparée des produits emballés via Open Food Facts.
+- Fermeture explicite du dialogue d'ajout via le bouton X.
+- Service Worker incrémenté en 1.4.0.
+Note : la liste locale intégrée est un jeu de départ pratique, pas l'intégralité de la base Ciqual. La table officielle ANSES-Ciqual 2025 est librement téléchargeable et contient 3 484 aliments ; son intégration exhaustive nécessitera d'ajouter le fichier de données converti à l'application.
+\n\nV2.0.0 : intégration de la base officielle ANSES Ciqual 2025 (3 484 aliments).\nFichier ciqual-2025.json généré depuis la feuille « composition nutritionnelle » du classeur Ciqual 2025 fourni. Valeurs pour 100 g : énergie (kcal), protéines (facteur Jones), glucides et lipides. Les valeurs notées « < x » dans le fichier source sont converties en x/2 pour permettre les calculs ; les tirets et valeurs absentes restent non renseignés. Source : ANSES, Table Ciqual 2025, licence Etalab – Open Licence 2.0.\n
