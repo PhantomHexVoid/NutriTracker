@@ -41,7 +41,9 @@ function showHistory(){$('historyDialog').showModal();renderHistory()}
 $('historyBtn').onclick=$('navHistory').onclick=showHistory;
 $('closeHistory').onclick=()=>$('historyDialog').close();
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({goals,data},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nutritrack-sauvegarde.json';a.click();URL.revokeObjectURL(a.href)};
-$('clearBtn').onclick=()=>{if(confirm('Effacer définitivement tous les repas et objectifs enregistrés sur cet appareil ?')){data={};save();// Persistent light/dark theme preference
+$('clearBtn').onclick=()=>{if(confirm('Effacer définitivement tous les repas et objectifs enregistrés sur cet appareil ?')){data={};save();render();$('historyDialog').close()}};
+
+// Persistent light/dark theme preference
 const savedTheme=localStorage.getItem('nt-theme')||'light';
 document.body.dataset.theme=savedTheme;
 function syncThemeButton(){
@@ -59,7 +61,6 @@ $('themeBtn').onclick=()=>{
 };
 syncThemeButton();
 
-render();$('historyDialog').close()}};
 // Service worker: check for a new release at each app opening.
 let swRegistration=null;
 async function setupUpdates(){

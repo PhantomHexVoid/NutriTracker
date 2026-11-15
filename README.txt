@@ -49,3 +49,15 @@ VERSION 1.3.0 — THÈME SOMBRE
 - Ajout d'un bouton lune/soleil dans l'en-tête.
 - Le thème choisi est mémorisé localement sur l'appareil.
 - Le cache du Service Worker est passé en version 1.3.0 pour déclencher la mise à jour.
+
+VERSION 1.3.1 — CORRECTIF DE MISE À JOUR
+- Correction du placement de l’initialisation du thème.
+- Installation du cache avec rechargement forcé des ressources.
+- Navigation en réseau d’abord pour récupérer le dernier index.html, avec secours hors ligne.
+- Incrément du cache Service Worker pour déclencher une nouvelle installation.
+
+VERSION 1.3.1 — CORRECTIF DE MISE À JOUR
+- Correction de l’initialisation du thème sombre (initialisation au démarrage).
+- Nouvelle stratégie de cache : le nouvel écran HTML est récupéré sur le réseau en priorité.
+- Les fichiers du nouveau cache sont téléchargés sans réutiliser le cache HTTP.
+- Le numéro de cache Service Worker est incrémenté en 1.3.1.
