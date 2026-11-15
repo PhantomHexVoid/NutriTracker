@@ -69,3 +69,8 @@ VERSION 1.3.2 — NOUVELLE ICÔNE PHANTOM
 VERSION 1.3.3 — NOUVELLE ICÔNE PHANTOM
 - Remplacement des icônes PWA 192x192 et 512x512 par le nouveau logo minimaliste pomme/cardio.
 - Incrément de version du Service Worker pour mettre à jour le cache des icônes.
+
+VERSION 1.3.4 — ICÔNE EXACTE FOURNIE
+- Remplacement des icônes 192x192 et 512x512 par le visuel de référence fourni : fond carré anthracite, feuille bicolore et tracé ECG vert, sans contour de pomme.
+- Cache Service Worker incrémenté en 1.3.4.
+- Pour rafraîchir l'icône iOS, il peut être nécessaire de supprimer le raccourci de l'écran d'accueil puis de le recréer depuis Safari après publication. Les données stockées sur le site restent conservées si le domaine ne change pas.
