@@ -101,3 +101,10 @@ NOUVEAUTÉ V2.3.0
 NOUVEAUTÉ V2.3.1
 - Remplacement des fenêtres système prompt/confirm par une fenêtre de copie intégrée au design NutriTracker.
 - Choix du repas sous forme de boutons, puis étape de confirmation visuelle.
+
+NOUVEAUTÉ V2.3.2 — SAUVEGARDES
+- Création automatique d'une sauvegarde locale quotidienne à l'ouverture, avec conservation des 7 dernières copies.
+- Export manuel JSON via le bouton « Exporter vers Fichiers / iCloud » : choisir iCloud Drive dans la feuille de partage/enregistrement iOS.
+- Restauration d'un fichier JSON NutriTracker avec validation du format et création d'une copie locale avant remplacement.
+- Pas de chiffrement par mot de passe.
+NOTE : l'application web ne peut pas écrire silencieusement dans iCloud Drive. L'export vers iCloud nécessite une action de l'utilisateur.

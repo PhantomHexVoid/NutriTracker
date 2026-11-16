@@ -197,10 +197,50 @@ $('importYesterdayBtn').onclick=()=>{
   alert(`${count} aliment${count>1?'s':''} importé${count>1?'s':''} avec succès.`);
 };
 
-function showHistory(){$('historyDialog').showModal();renderHistory()}
+function showHistory(){$('historyDialog').showModal();renderHistory();renderBackupStatus()}
 $('historyBtn').onclick=$('navHistory').onclick=showHistory;
 $('closeHistory').onclick=()=>$('historyDialog').close();
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({goals,data},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nutritrack-sauvegarde.json';a.click();URL.revokeObjectURL(a.href)};
+
+function backupPayload(){return {app:'NutriTracker by Phantom',format:1,createdAt:new Date().toISOString(),goals,data}}
+function downloadBackup(payload=backupPayload()){
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`NutriTracker-sauvegarde-${isoDate(new Date())}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function createDailyLocalBackup(){
+  try{
+    const today=isoDate(new Date()),list=readStored('nt-backups',[]);
+    if(list.some(x=>x.date===today))return;
+    list.unshift({date:today,payload:backupPayload()});
+    localStorage.setItem('nt-backups',JSON.stringify(list.slice(0,7)));
+  }catch(e){console.warn('Sauvegarde locale indisponible',e)}
+}
+function renderBackupStatus(){
+  const list=readStored('nt-backups',[]);
+  const latest=list[0];
+  $('backupStatus').textContent=latest?`Dernière copie locale : ${new Date(latest.payload.createdAt).toLocaleString('fr-FR')} · ${list.length} sauvegarde(s) conservée(s).`:'Aucune sauvegarde locale pour le moment.';
+  $('backupHistory').innerHTML=list.length?`<small>Historique local : ${list.map(x=>new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR')).join(' · ')}</small>`:'<small>Les sauvegardes locales sont conservées sur cet appareil.</small>';
+}
+
+$('exportBtn').onclick=()=>downloadBackup();
+$('restoreBtn').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const parsed=JSON.parse(await file.text());
+    if(!parsed||typeof parsed!=='object'||!parsed.data||typeof parsed.data!=='object'||!parsed.goals||typeof parsed.goals!=='object')throw new Error('format');
+    if(!confirm('Restaurer cette sauvegarde ? Les données actuelles seront remplacées. Une copie de sécurité locale sera créée avant la restauration.'))return;
+    const before=readStored('nt-backups',[]);
+    before.unshift({date:isoDate(new Date()),payload:backupPayload(),reason:'Avant restauration'});
+    localStorage.setItem('nt-backups',JSON.stringify(before.slice(0,7)));
+    data=parsed.data;goals={...defaults,...parsed.goals};
+    save();localStorage.setItem('nt-goals',JSON.stringify(goals));
+    render();renderBackupStatus();alert('Sauvegarde restaurée avec succès.');
+  }catch(err){alert('Impossible de lire cette sauvegarde. Vérifie que le fichier JSON provient de NutriTracker.')}
+  finally{e.target.value=''}
+};
+
 $('clearBtn').onclick=()=>{if(confirm('Effacer définitivement tous les repas et objectifs enregistrés sur cet appareil ?')){data={};save();render();$('historyDialog').close()}};
 
 // Persistent light/dark theme preference
@@ -348,3 +388,7 @@ async function lookupFoodBarcode(raw){
     $('scannerStatus').textContent=e.message==='Produit introuvable'?'Produit non trouvé dans Open Food Facts. Tu peux saisir ses valeurs manuellement.':'Impossible de récupérer les valeurs nutritionnelles. Vérifie ta connexion ou saisis-les manuellement.';
   }
 }
+
+
+// Sauvegarde locale automatique quotidienne (7 dernières copies).
+createDailyLocalBackup();
