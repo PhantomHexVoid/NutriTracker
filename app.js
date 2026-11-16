@@ -24,15 +24,7 @@ function render(){
     e.stopPropagation();
     const source=day().find(x=>String(x.id)===String(b.dataset.id));
     if(!source)return;
-    const choices=meals.filter(m=>m!==source.meal);
-    const choice=prompt(`Copier « ${source.name} » vers quel repas ?\\n\\n${choices.map((m,i)=>`${i+1}. ${m}`).join('\\n')}\\n\\nSaisis le numéro du repas.`);
-    if(choice===null)return;
-    const target=choices[Number(choice)-1];
-    if(!target){alert('Choix invalide. Aucun aliment n’a été copié.');return}
-    if(!confirm(`Copier « ${source.name} » (${source.qty} g) du ${source.meal} vers le ${target} ?\\n\\nL’aliment d’origine sera conservé.`))return;
-    const copy={...source,meal:target,id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`)};
-    data[selectedDate]=[...day(),copy];
-    save();render();
+    openCopyDialog(source.id);
   });
   document.querySelectorAll('.editable-food').forEach(row=>{
     const edit=()=>editFood(row.dataset.editId);
@@ -41,6 +33,33 @@ function render(){
   });
   renderHistory();
 }
+let copySourceId=null, copyTargetMeal=null;
+function openCopyDialog(id){
+  const source=day().find(x=>String(x.id)===String(id));
+  if(!source)return;
+  copySourceId=String(id);copyTargetMeal=null;
+  $('copyFoodName').textContent=source.name;
+  $('copyFoodDetails').textContent=`${source.qty} g · ${Math.round(source.calories)} kcal`;
+  $('copyTargetStep').hidden=false;$('copyConfirmStep').hidden=true;
+  $('copyTargetChoices').innerHTML=meals.filter(m=>m!==source.meal).map(m=>`<button type="button" class="copy-target" data-meal="${esc(m)}">${esc(m)}</button>`).join('');
+  $('copyDialog').showModal();
+  document.querySelectorAll('.copy-target').forEach(b=>b.onclick=()=>{
+    copyTargetMeal=b.dataset.meal;
+    $('copyTargetStep').hidden=true;$('copyConfirmStep').hidden=false;
+    $('copyConfirmText').textContent=`Copier cet aliment vers ${copyTargetMeal} ?`;
+  });
+}
+$('copyBack').onclick=()=>{
+  $('copyTargetStep').hidden=false;$('copyConfirmStep').hidden=true;copyTargetMeal=null;
+};
+$('copyCancel').onclick=$('copyCancelBottom').onclick=()=>{$('copyDialog').close();copySourceId=null;copyTargetMeal=null};
+$('copyConfirm').onclick=()=>{
+  const source=day().find(x=>String(x.id)===String(copySourceId));
+  if(!source||!copyTargetMeal)return;
+  const copy={...source,meal:copyTargetMeal,id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`)};
+  data[selectedDate]=[...day(),copy];save();
+  $('copyDialog').close();copySourceId=null;copyTargetMeal=null;render();
+};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderHistory(){
   const dates=Object.keys(data).filter(d=>data[d]?.length).sort().reverse().slice(0,7);

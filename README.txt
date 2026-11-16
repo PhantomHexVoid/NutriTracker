@@ -97,3 +97,7 @@ NOUVEAUTÉ V2.3.0
 - Icône de copie sur chaque aliment du journal.
 - Copie vers un autre repas de la même journée, avec choix du repas et confirmation.
 - L'aliment d'origine reste en place ; la copie conserve quantité et valeurs nutritionnelles.
+
+NOUVEAUTÉ V2.3.1
+- Remplacement des fenêtres système prompt/confirm par une fenêtre de copie intégrée au design NutriTracker.
+- Choix du repas sous forme de boutons, puis étape de confirmation visuelle.

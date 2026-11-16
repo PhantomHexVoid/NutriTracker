@@ -95,3 +95,19 @@ input, select, textarea { font-size: 16px !important; }
 /* V2.3.0 — action discrète pour copier un aliment vers un autre repas */
 .copy-food{border:0;border-radius:8px;background:#263b32;color:#cfe4d7;width:30px;height:30px;margin-left:7px;font-size:17px;line-height:1;vertical-align:middle}
 .copy-food:active{transform:scale(.96)}
+
+/* V2.3.1 — fenêtre de copie intégrée au thème NutriTracker */
+.copy-dialog{background:#14221c;color:#edf4ef;border:1px solid #30453a;border-radius:22px;padding:0;width:min(92vw,430px);max-height:86vh}
+.copy-dialog .dialog-shell{padding:20px}
+.copy-dialog .close-btn{background:#263b32;color:#dce9e1}
+.copy-food-preview{display:flex;flex-direction:column;gap:5px;background:#1d3027;border:1px solid #30483b;border-radius:14px;padding:13px;margin-bottom:16px}
+.copy-food-preview strong{font-size:15px}.copy-food-preview small,.copy-dialog-note{color:#a6b7ad;font-size:12px}
+.copy-dialog-hint{font-size:14px;font-weight:650;margin:12px 0}
+.copy-target-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.copy-target{background:#20372c;border:1px solid #3b5a48;color:#e8f1eb;border-radius:12px;padding:13px 8px;font:inherit;font-size:13px;font-weight:700;min-height:48px}
+.copy-target:active{background:#2d5941}
+.copy-dialog-note{line-height:1.5;margin:8px 0 16px}
+.copy-dialog-actions{display:flex;gap:8px;align-items:center}
+.copy-dialog-actions>*{flex:1}
+.copy-dialog .text-btn{color:#9eb5a7;margin-top:12px}
+.copy-dialog::backdrop{background:#06100bd9;backdrop-filter:blur(5px)}
