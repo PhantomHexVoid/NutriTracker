@@ -82,3 +82,9 @@ body[data-theme="dark"] .source-tab.active{background:#244638;color:#c5f0d1}
 .scanner-panel video{display:block;width:100%;max-height:260px;object-fit:cover;background:#050807;border-radius:12px}
 .scanner-manual{display:grid;grid-template-columns:1fr auto;gap:8px;margin:10px 0}
 .scanner-manual input{min-width:0}
+
+/* V2.2.1 — actions compactes alignées sur la ligne du titre */
+.meal-section-head{align-items:end;gap:10px}
+.meal-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.meal-actions .primary-btn,.meal-actions .import-day-btn{width:auto;min-height:40px;padding:10px 12px;white-space:nowrap}
+.meal-actions .import-day-btn{margin:0;background:#263b32;color:#d5e5da;border:1px solid #31483d;border-radius:12px;font-size:12px}
