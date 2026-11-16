@@ -11,13 +11,22 @@ function save(){localStorage.setItem('nt-days',JSON.stringify(data))}
 function fmt(n){return Math.round(n*10)/10}
 function prettyDate(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 function totals(items){return items.reduce((a,x)=>{for(const k of ['calories','protein','carbs','fat'])a[k]+=Number(x[k]||0);return a},{calories:0,protein:0,carbs:0,fat:0})}
+function setProgressBar(id, consumed, goal){
+  const percent=goal>0?(consumed/goal)*100:0;
+  const bar=$(id);
+  bar.style.width=Math.min(100,Math.max(0,percent))+'%';
+  bar.classList.remove('zone-neon','zone-over');
+  if(percent>100)bar.classList.add('zone-over');
+  else if(percent>=90)bar.classList.add('zone-neon');
+  return percent;
+}
 function render(){
-  const items=day(), t=totals(items), pct=Math.min(100,t.calories/goals.calories*100);
+  const items=day(), t=totals(items), pct=setProgressBar('calorieBar',t.calories,goals.calories);
   $('dateLabel').textContent=prettyDate(selectedDate);
   $('caloriesNow').textContent=Math.round(t.calories).toLocaleString('fr-FR');$('calorieGoal').textContent=goals.calories.toLocaleString('fr-FR');
-  $('caloriePercent').textContent=Math.round(pct)+' %';$('calorieBar').style.width=pct+'%';
+  $('caloriePercent').textContent=Math.round(pct)+' %';
   $('calorieRemaining').textContent=t.calories<=goals.calories?`${Math.round(goals.calories-t.calories)} kcal restantes`:`${Math.round(t.calories-goals.calories)} kcal au-dessus de l'objectif`;
-  for(const k of ['protein','carbs','fat']){$(k+'Now').textContent=fmt(t[k])+' g';$(k+'Bar').style.width=Math.min(100,t[k]/goals[k]*100)+'%';$(k+'Meta').textContent=`Objectif : ${goals[k]} g`}
+  for(const k of ['protein','carbs','fat']){$(k+'Now').textContent=fmt(t[k])+' g';setProgressBar(k+'Bar',t[k],goals[k]);$(k+'Meta').textContent=`Objectif : ${goals[k]} g`}
   $('mealList').innerHTML=meals.map(m=>{const group=items.filter(x=>x.meal===m),sum=totals(group);return `<section class="meal-group"><div class="meal-title"><span>${m}</span><small>${Math.round(sum.calories)} kcal</small></div>${group.length?group.map(x=>`<div class="food-row editable-food" data-edit-id="${x.id}" role="button" tabindex="0" aria-label="Modifier ${esc(x.name)}"><div><strong>${esc(x.name)}</strong><small>${x.qty} g · P ${fmt(x.protein)} g · G ${fmt(x.carbs)} g · L ${fmt(x.fat)} g</small></div><div class="food-kcal">${Math.round(x.calories)} kcal <button class="copy-food" data-id="${x.id}" aria-label="Copier vers un autre repas" title="Copier vers un autre repas">⧉</button><button class="remove-food" data-id="${x.id}" aria-label="Supprimer">×</button></div></div>`).join(''):'<div class="empty">Aucun aliment ajouté</div>'}</section>`}).join('');
   document.querySelectorAll('.remove-food').forEach(b=>b.onclick=e=>{e.stopPropagation();data[selectedDate]=day().filter(x=>x.id!==b.dataset.id);save();render()});
   document.querySelectorAll('.copy-food').forEach(b=>b.onclick=e=>{

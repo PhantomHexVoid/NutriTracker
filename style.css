@@ -118,3 +118,16 @@ input, select, textarea { font-size: 16px !important; }
 .backup-status{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0}
 .backup-history{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.5}
 body[data-theme="dark"] .backup-panel{background:#17251e;border-color:#34483d}
+
+
+/* NutriTracker 2.3.3 — progression des objectifs */
+.progress div.zone-neon,
+.mini-progress i.zone-neon {
+  background: #39FF14 !important;
+  box-shadow: 0 0 7px rgba(57,255,20,.42);
+}
+.progress div.zone-over,
+.mini-progress i.zone-over {
+  background: #FF3B30 !important;
+  box-shadow: 0 0 6px rgba(255,59,48,.25);
+}
