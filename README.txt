@@ -87,3 +87,8 @@ NOUVEAUTÉ V2.2.0
 - Bouton « Importer les repas d’hier » sous la section Mes repas.
 - Une confirmation indique le nombre d’aliments copiés et précise que les repas déjà présents aujourd’hui sont conservés.
 - L’importation copie les aliments et leurs quantités/valeurs nutritionnelles ; elle ne modifie jamais la journée source.
+
+NOUVEAUTÉ V2.2.2
+- Correction du zoom automatique de Safari iPhone lors de la sélection des champs de saisie : taille de texte des champs portée à 16 px minimum.
+- Le zoom général de la page reste disponible avec les gestes habituels.
+- Aucun changement aux objectifs nutritionnels ni aux données enregistrées.

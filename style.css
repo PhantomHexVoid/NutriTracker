@@ -88,3 +88,6 @@ body[data-theme="dark"] .source-tab.active{background:#244638;color:#c5f0d1}
 .meal-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}
 .meal-actions .primary-btn,.meal-actions .import-day-btn{width:auto;min-height:40px;padding:10px 12px;white-space:nowrap}
 .meal-actions .import-day-btn{margin:0;background:#263b32;color:#d5e5da;border:1px solid #31483d;border-radius:12px;font-size:12px}
+
+/* V2.2.2 — évite le zoom automatique de Safari iOS sur les champs */
+input, select, textarea { font-size: 16px !important; }
