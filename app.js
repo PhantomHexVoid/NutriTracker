@@ -18,8 +18,22 @@ function render(){
   $('caloriePercent').textContent=Math.round(pct)+' %';$('calorieBar').style.width=pct+'%';
   $('calorieRemaining').textContent=t.calories<=goals.calories?`${Math.round(goals.calories-t.calories)} kcal restantes`:`${Math.round(t.calories-goals.calories)} kcal au-dessus de l'objectif`;
   for(const k of ['protein','carbs','fat']){$(k+'Now').textContent=fmt(t[k])+' g';$(k+'Bar').style.width=Math.min(100,t[k]/goals[k]*100)+'%';$(k+'Meta').textContent=`Objectif : ${goals[k]} g`}
-  $('mealList').innerHTML=meals.map(m=>{const group=items.filter(x=>x.meal===m),sum=totals(group);return `<section class="meal-group"><div class="meal-title"><span>${m}</span><small>${Math.round(sum.calories)} kcal</small></div>${group.length?group.map(x=>`<div class="food-row editable-food" data-edit-id="${x.id}" role="button" tabindex="0" aria-label="Modifier ${esc(x.name)}"><div><strong>${esc(x.name)}</strong><small>${x.qty} g · P ${fmt(x.protein)} g · G ${fmt(x.carbs)} g · L ${fmt(x.fat)} g</small></div><div class="food-kcal">${Math.round(x.calories)} kcal <button class="remove-food" data-id="${x.id}" aria-label="Supprimer">×</button></div></div>`).join(''):'<div class="empty">Aucun aliment ajouté</div>'}</section>`}).join('');
+  $('mealList').innerHTML=meals.map(m=>{const group=items.filter(x=>x.meal===m),sum=totals(group);return `<section class="meal-group"><div class="meal-title"><span>${m}</span><small>${Math.round(sum.calories)} kcal</small></div>${group.length?group.map(x=>`<div class="food-row editable-food" data-edit-id="${x.id}" role="button" tabindex="0" aria-label="Modifier ${esc(x.name)}"><div><strong>${esc(x.name)}</strong><small>${x.qty} g · P ${fmt(x.protein)} g · G ${fmt(x.carbs)} g · L ${fmt(x.fat)} g</small></div><div class="food-kcal">${Math.round(x.calories)} kcal <button class="copy-food" data-id="${x.id}" aria-label="Copier vers un autre repas" title="Copier vers un autre repas">⧉</button><button class="remove-food" data-id="${x.id}" aria-label="Supprimer">×</button></div></div>`).join(''):'<div class="empty">Aucun aliment ajouté</div>'}</section>`}).join('');
   document.querySelectorAll('.remove-food').forEach(b=>b.onclick=e=>{e.stopPropagation();data[selectedDate]=day().filter(x=>x.id!==b.dataset.id);save();render()});
+  document.querySelectorAll('.copy-food').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const source=day().find(x=>String(x.id)===String(b.dataset.id));
+    if(!source)return;
+    const choices=meals.filter(m=>m!==source.meal);
+    const choice=prompt(`Copier « ${source.name} » vers quel repas ?\\n\\n${choices.map((m,i)=>`${i+1}. ${m}`).join('\\n')}\\n\\nSaisis le numéro du repas.`);
+    if(choice===null)return;
+    const target=choices[Number(choice)-1];
+    if(!target){alert('Choix invalide. Aucun aliment n’a été copié.');return}
+    if(!confirm(`Copier « ${source.name} » (${source.qty} g) du ${source.meal} vers le ${target} ?\\n\\nL’aliment d’origine sera conservé.`))return;
+    const copy={...source,meal:target,id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`)};
+    data[selectedDate]=[...day(),copy];
+    save();render();
+  });
   document.querySelectorAll('.editable-food').forEach(row=>{
     const edit=()=>editFood(row.dataset.editId);
     row.onclick=e=>{if(!e.target.closest('.remove-food'))edit()};

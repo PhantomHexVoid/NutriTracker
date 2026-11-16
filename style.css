@@ -91,3 +91,7 @@ body[data-theme="dark"] .source-tab.active{background:#244638;color:#c5f0d1}
 
 /* V2.2.2 — évite le zoom automatique de Safari iOS sur les champs */
 input, select, textarea { font-size: 16px !important; }
+
+/* V2.3.0 — action discrète pour copier un aliment vers un autre repas */
+.copy-food{border:0;border-radius:8px;background:#263b32;color:#cfe4d7;width:30px;height:30px;margin-left:7px;font-size:17px;line-height:1;vertical-align:middle}
+.copy-food:active{transform:scale(.96)}

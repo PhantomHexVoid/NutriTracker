@@ -92,3 +92,8 @@ NOUVEAUTÉ V2.2.2
 - Correction du zoom automatique de Safari iPhone lors de la sélection des champs de saisie : taille de texte des champs portée à 16 px minimum.
 - Le zoom général de la page reste disponible avec les gestes habituels.
 - Aucun changement aux objectifs nutritionnels ni aux données enregistrées.
+
+NOUVEAUTÉ V2.3.0
+- Icône de copie sur chaque aliment du journal.
+- Copie vers un autre repas de la même journée, avec choix du repas et confirmation.
+- L'aliment d'origine reste en place ; la copie conserve quantité et valeurs nutritionnelles.
