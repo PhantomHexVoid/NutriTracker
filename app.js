@@ -165,42 +165,53 @@ $('themeBtn').onclick=()=>{
 };
 syncThemeButton();
 
-// Service worker: check for a new release at each app opening.
-let swRegistration=null;
+// Reliable update lifecycle: do not activate or reload until the user confirms.
+let swRegistration=null, updatePromptShown=false, userRequestedUpdate=false, updateReloadTimer=null;
 async function setupUpdates(){
   if(!('serviceWorker' in navigator)) return;
   try{
     swRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
-    // Ask the browser to check the server for a newer sw.js.
-    await swRegistration.update();
+    const check=()=>swRegistration.update().catch(()=>{});
+    await check();
     if(swRegistration.waiting && navigator.serviceWorker.controller) showUpdatePrompt();
     swRegistration.addEventListener('updatefound',()=>{
-      const installing=swRegistration.installing;
-      if(!installing)return;
+      const installing=swRegistration.installing;if(!installing)return;
       installing.addEventListener('statechange',()=>{
         if(installing.state==='installed' && navigator.serviceWorker.controller) showUpdatePrompt();
       });
     });
-    // A newly activated worker takes control; reload once to use its files.
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      if(!window.__ntReloading){window.__ntReloading=true;window.location.reload();}
+      if(userRequestedUpdate && !window.__ntReloading){
+        window.__ntReloading=true;clearTimeout(updateReloadTimer);window.location.reload();
+      }
     });
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
   }catch(e){console.log('Mise à jour indisponible',e)}
 }
 function showUpdatePrompt(){
-  const dlg=$('updateDialog');
-  if(dlg && !dlg.open) dlg.showModal();
+  const dlg=$('updateDialog');if(!dlg || dlg.open || updatePromptShown)return;
+  updatePromptShown=true;
+  const btn=$('installUpdate');if(btn){btn.disabled=false;btn.textContent='Télécharger et installer'}
+  dlg.showModal();
 }
-$('laterUpdate').onclick=()=> $('updateDialog').close();
-$('installUpdate').onclick=()=>{
-  if(!swRegistration || !swRegistration.waiting){
-    $('updateDialog').close();
-    if(swRegistration) swRegistration.update();
-    return;
-  }
-  $('installUpdate').textContent='Installation…';
-  $('installUpdate').disabled=true;
-  swRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+$('laterUpdate').onclick=()=>{if($('updateDialog').open)$('updateDialog').close();updatePromptShown=false};
+$('installUpdate').onclick=async()=>{
+  const btn=$('installUpdate');if(!swRegistration)return;
+  btn.textContent='Préparation de l’installation…';btn.disabled=true;
+  try{
+    await swRegistration.update();
+    if(!swRegistration.waiting && swRegistration.installing){
+      const installing=swRegistration.installing;
+      await new Promise(resolve=>{
+        const done=()=>{if(['installed','redundant'].includes(installing.state)){installing.removeEventListener('statechange',done);resolve()}};
+        installing.addEventListener('statechange',done);done();setTimeout(resolve,12000);
+      });
+    }
+    if(!swRegistration.waiting){btn.disabled=false;btn.textContent='Réessayer l’installation';return}
+    userRequestedUpdate=true;
+    swRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+    updateReloadTimer=setTimeout(()=>{if(userRequestedUpdate&&!window.__ntReloading){window.__ntReloading=true;window.location.reload()}},6000);
+  }catch(e){btn.disabled=false;btn.textContent='Réessayer l’installation';console.log('Installation impossible',e)}
 };
 setupUpdates();
 render();
@@ -210,3 +221,74 @@ function dismissSplash(){const splash=document.getElementById('splash');if(splas
 window.addEventListener('DOMContentLoaded',()=>setTimeout(dismissSplash,1800),{once:true});
 window.addEventListener('load',()=>setTimeout(dismissSplash,1800),{once:true});
 setTimeout(dismissSplash,4000);
+
+
+// Barcode scanner: camera via ZXing (Safari fallback) and product lookup via Open Food Facts.
+let barcodeReader=null, barcodeControls=null, scannerActive=false;
+function stopBarcodeScanner(){
+  scannerActive=false;
+  try{if(barcodeControls && barcodeControls.stop)barcodeControls.stop()}catch(e){}
+  barcodeControls=null;
+  const video=$('scannerVideo');
+  if(video && video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());video.srcObject=null}
+}
+$('openScanner').onclick=async()=>{
+  $('scannerPanel').hidden=false;
+  $('scannerStatus').textContent='Ouverture de la caméra…';
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    $('scannerStatus').textContent='Caméra indisponible dans ce navigateur. Tu peux saisir le code-barres ci-dessous.';
+    return;
+  }
+  try{
+    if(!window.ZXingBrowser || !ZXingBrowser.BrowserMultiFormatReader){
+      $('scannerStatus').textContent='Le module de scan n’a pas pu être chargé. Saisis le code-barres manuellement ci-dessous.';
+      return;
+    }
+    stopBarcodeScanner();
+    barcodeReader=new ZXingBrowser.BrowserMultiFormatReader();
+    scannerActive=true;
+    barcodeControls=await barcodeReader.decodeFromVideoDevice(undefined,'scannerVideo',(result,err)=>{
+      if(result && scannerActive){
+        const code=result.getText();
+        $('barcodeInput').value=code;
+        stopBarcodeScanner();
+        lookupFoodBarcode(code);
+      }
+    });
+    $('scannerStatus').textContent='Place le code-barres dans le cadre. Le scan se déclenche automatiquement.';
+  }catch(e){
+    stopBarcodeScanner();
+    $('scannerStatus').textContent='Impossible d’accéder à la caméra. Vérifie l’autorisation caméra de Safari, ou saisis le code-barres manuellement.';
+  }
+};
+$('closeScanner').onclick=()=>{stopBarcodeScanner();$('scannerPanel').hidden=true};
+$('lookupBarcode').onclick=()=>lookupFoodBarcode($('barcodeInput').value);
+async function lookupFoodBarcode(raw){
+  const code=String(raw||'').replace(/\D/g,'');
+  if(!/^\d{8,14}$/.test(code)){
+    $('scannerStatus').textContent='Code invalide : saisis un code EAN de 8 à 14 chiffres.';return;
+  }
+  $('scannerStatus').textContent='Recherche du produit dans Open Food Facts…';
+  try{
+    const fields='product_name,product_name_fr,brands,nutriments,quantity,serving_size';
+    const response=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json?fields='+fields,{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const data=await response.json();
+    if(data.status!==1 || !data.product)throw new Error('Produit introuvable');
+    const p=data.product, n=p.nutriments||{};
+    const name=(p.product_name_fr||p.product_name||'').trim();
+    if(!name)throw new Error('Nom du produit manquant');
+    const kcal=Number(n['energy-kcal_100g']) || (Number(n['energy_100g'])/4.184) || 0;
+    const protein=Number(n.proteins_100g)||0, carbs=Number(n.carbohydrates_100g)||0, fat=Number(n.fat_100g)||0;
+    if(!kcal && !protein && !carbs && !fat)throw new Error('Valeurs nutritionnelles absentes');
+    stopBarcodeScanner();$('scannerPanel').hidden=true;
+    foodValuesPer100=true;setFoodFormMode();
+    document.querySelector('[data-tab="manual"]').click();
+    $('foodName').value=name+(p.brands?' — '+p.brands:'');
+    $('foodQty').value=100;$('foodKcal').value=Number(kcal.toFixed(1));
+    $('foodProtein').value=Number(protein.toFixed(1));$('foodCarbs').value=Number(carbs.toFixed(1));$('foodFat').value=Number(fat.toFixed(1));
+    $('searchStatus').textContent='Produit trouvé. Vérifie les valeurs pour 100 g et indique la quantité consommée.';
+  }catch(e){
+    $('scannerStatus').textContent=e.message==='Produit introuvable'?'Produit non trouvé dans Open Food Facts. Tu peux saisir ses valeurs manuellement.':'Impossible de récupérer les valeurs nutritionnelles. Vérifie ta connexion ou saisis-les manuellement.';
+  }
+}
