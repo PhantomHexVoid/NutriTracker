@@ -82,3 +82,8 @@ VERSION 1.4.0 — RECHERCHE ALIMENTAIRE ET FERMETURE DU POP-UP
 - Service Worker incrémenté en 1.4.0.
 Note : la liste locale intégrée est un jeu de départ pratique, pas l'intégralité de la base Ciqual. La table officielle ANSES-Ciqual 2025 est librement téléchargeable et contient 3 484 aliments ; son intégration exhaustive nécessitera d'ajouter le fichier de données converti à l'application.
 \n\nV2.0.0 : intégration de la base officielle ANSES Ciqual 2025 (3 484 aliments).\nFichier ciqual-2025.json généré depuis la feuille « composition nutritionnelle » du classeur Ciqual 2025 fourni. Valeurs pour 100 g : énergie (kcal), protéines (facteur Jones), glucides et lipides. Les valeurs notées « < x » dans le fichier source sont converties en x/2 pour permettre les calculs ; les tirets et valeurs absentes restent non renseignés. Source : ANSES, Table Ciqual 2025, licence Etalab – Open Licence 2.0.\n
+
+NOUVEAUTÉ V2.2.0
+- Bouton « Importer les repas d’hier » sous la section Mes repas.
+- Une confirmation indique le nombre d’aliments copiés et précise que les repas déjà présents aujourd’hui sont conservés.
+- L’importation copie les aliments et leurs quantités/valeurs nutritionnelles ; elle ne modifie jamais la journée source.

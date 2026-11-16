@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="NutriTrack">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png?v=210">
-  <link rel="stylesheet" href="style.css?v=210">
+  <link rel="apple-touch-icon" href="icon-192.png?v=220">
+  <link rel="stylesheet" href="style.css?v=220">
   <title>NutriTrack</title>
 </head>
 <body>
@@ -50,6 +50,7 @@
     </section>
 
     <section class="section-head"><div><div class="eyebrow">TON ALIMENTATION</div><h2>Mes repas</h2></div><button class="primary-btn" id="addBtn">＋ Ajouter</button></section>
+    <button class="secondary-btn full import-day-btn" id="importYesterdayBtn" type="button">↧ Importer les repas d’hier</button>
     <div id="mealList" class="meal-list"></div>
 
     <section class="section-head history-head"><div><div class="eyebrow">TES PROGRÈS</div><h2>Historique récent</h2></div><button class="text-btn" id="historyBtn">Voir tout</button></section>
@@ -94,7 +95,7 @@
       <label>Calories (kcal)<input id="goalCalories" type="number" min="1"></label>
       <div class="three-col"><label>Protéines (g)<input id="goalProtein" type="number" min="1"></label><label>Glucides (g)<input id="goalCarbs" type="number" min="1"></label><label>Lipides (g)<input id="goalFat" type="number" min="1"></label></div>
       <button class="primary-btn full" id="saveGoals" value="save">Enregistrer</button>
-      <p class="app-version">NutriTracker <span id="appVersion">v2.1.0</span> · by Phantom</p>
+      <p class="app-version">NutriTracker <span id="appVersion">v2.2.0</span> · by Phantom</p>
     </form>
   </dialog>
 
@@ -116,6 +117,6 @@
   </div>
   <script>setTimeout(()=>{const s=document.getElementById("splash");if(s)s.classList.add("hide")},4000);</script>
   <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
-  <script src="app.js?v=210"></script>
+  <script src="app.js?v=220"></script>
 </body>
 </html>

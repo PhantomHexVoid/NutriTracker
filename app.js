@@ -141,6 +141,29 @@ $('saveGoals').onclick=()=>{for(const k of Object.keys(goals)){const v=Number($(
 $('prevDay').onclick=()=>{let d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()-1);selectedDate=isoDate(d);render()};
 $('nextDay').onclick=()=>{let d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()+1);selectedDate=isoDate(d);render()};
 $('todayBtn').onclick=()=>{selectedDate=isoDate(new Date());render()};
+$('importYesterdayBtn').onclick=()=>{
+  const previous=new Date(selectedDate+'T12:00:00');
+  previous.setDate(previous.getDate()-1);
+  const previousDate=isoDate(previous);
+  const source=data[previousDate]||[];
+  if(!source.length){
+    alert(`Aucun repas enregistré le ${prettyDate(previousDate)}.`);
+    return;
+  }
+  const count=source.length;
+  const current=data[selectedDate]||[];
+  const message=`Importer les ${count} aliment${count>1?'s':''} de ${prettyDate(previousDate)} vers ${prettyDate(selectedDate)} ?\\n\\nLes repas actuels (${current.length} aliment${current.length>1?'s':''}) seront conservés. Les aliments importés seront ajoutés en plus.`;
+  if(!confirm(message)) return;
+  const copies=source.map((item,index)=>({
+    ...item,
+    id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`)
+  }));
+  data[selectedDate]=[...current,...copies];
+  save();
+  render();
+  alert(`${count} aliment${count>1?'s':''} importé${count>1?'s':''} avec succès.`);
+};
+
 function showHistory(){$('historyDialog').showModal();renderHistory()}
 $('historyBtn').onclick=$('navHistory').onclick=showHistory;
 $('closeHistory').onclick=()=>$('historyDialog').close();
