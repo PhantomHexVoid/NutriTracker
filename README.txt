@@ -102,7 +102,7 @@ NOUVEAUTÉ V2.3.1
 - Remplacement des fenêtres système prompt/confirm par une fenêtre de copie intégrée au design NutriTracker.
 - Choix du repas sous forme de boutons, puis étape de confirmation visuelle.
 
-NOUVEAUTÉ V2.3.3 — SAUVEGARDES
+NOUVEAUTÉ V2.3.4 — SAUVEGARDES
 - Création automatique d'une sauvegarde locale quotidienne à l'ouverture, avec conservation des 7 dernières copies.
 - Export manuel JSON via le bouton « Exporter vers Fichiers / iCloud » : choisir iCloud Drive dans la feuille de partage/enregistrement iOS.
 - Restauration d'un fichier JSON NutriTracker avec validation du format et création d'une copie locale avant remplacement.
@@ -110,4 +110,6 @@ NOUVEAUTÉ V2.3.3 — SAUVEGARDES
 NOTE : l'application web ne peut pas écrire silencieusement dans iCloud Drive. L'export vers iCloud nécessite une action de l'utilisateur.
 
 
-V2.3.3 : barres de progression des calories, protéines, glucides et lipides en vert classique sous 90 %, vert néon de 90 à 100 %, rouge au-dessus de 100 %. Aucun libellé ou code couleur ajouté à l'interface.
+V2.3.4 : barres de progression des calories, protéines, glucides et lipides en vert classique sous 90 %, vert néon de 90 à 100 %, rouge au-dessus de 100 %. Aucun libellé ou code couleur ajouté à l'interface.
+
+V2.3.4 : import des repas de la veille via une fenêtre intégrée au design. Choix d’un repas (petit-déjeuner, déjeuner, dîner, collation) ou de tous les repas, avec récapitulatif et confirmation. Les aliments déjà présents sont conservés.

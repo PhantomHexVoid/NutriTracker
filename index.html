@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="NutriTrack">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png?v=231">
-  <link rel="stylesheet" href="style.css?v=233">
+  <link rel="stylesheet" href="style.css?v=234">
   <title>NutriTrack</title>
 </head>
 <body>
@@ -133,6 +133,35 @@
     </div>
   </dialog>
 
+
+
+  <dialog id="importDialog" class="copy-dialog import-dialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div><div class="eyebrow">IMPORTER LES REPAS</div><h2 id="importDialogTitle">Choisir les repas</h2></div>
+        <button type="button" class="close-btn" id="importClose" aria-label="Fermer">×</button>
+      </div>
+      <div class="copy-food-preview">
+        <strong id="importDateSummary"></strong>
+        <small id="importCurrentSummary"></small>
+      </div>
+      <div id="importChoiceStep">
+        <p class="copy-dialog-hint">Que veux-tu importer depuis la veille ?</p>
+        <div id="importMealChoices" class="import-meal-grid"></div>
+        <p class="copy-dialog-note">Les aliments déjà présents sur cette journée seront conservés. L’import ajoute les aliments sélectionnés sans rien remplacer.</p>
+        <button type="button" class="primary-btn full" id="importContinue" disabled>Choisir les repas</button>
+      </div>
+      <div id="importConfirmStep" hidden>
+        <p class="copy-dialog-hint" id="importConfirmSummary"></p>
+        <p class="copy-dialog-note">Les aliments sélectionnés seront ajoutés à la journée. Rien ne sera supprimé ni remplacé.</p>
+        <div class="copy-dialog-actions">
+          <button type="button" class="secondary-btn" id="importBack">Retour</button>
+          <button type="button" class="primary-btn" id="importConfirm">Confirmer l’import</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="historyDialog">
     <div class="dialog-shell"><div class="dialog-head"><div><div class="eyebrow">TES DONNÉES</div><h2>Historique</h2></div><button class="close-btn" id="closeHistory">×</button></div><div id="fullHistory"></div><section class="backup-panel">
       <div class="eyebrow">PROTECTION DES DONNÉES</div>
@@ -148,6 +177,6 @@
   </div>
   <script>setTimeout(()=>{const s=document.getElementById("splash");if(s)s.classList.add("hide")},4000);</script>
   <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
-  <script src="app.js?v=233"></script>
+  <script src="app.js?v=234"></script>
 </body>
 </html>

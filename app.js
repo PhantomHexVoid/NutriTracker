@@ -183,27 +183,59 @@ $('saveGoals').onclick=()=>{for(const k of Object.keys(goals)){const v=Number($(
 $('prevDay').onclick=()=>{let d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()-1);selectedDate=isoDate(d);render()};
 $('nextDay').onclick=()=>{let d=new Date(selectedDate+'T12:00:00');d.setDate(d.getDate()+1);selectedDate=isoDate(d);render()};
 $('todayBtn').onclick=()=>{selectedDate=isoDate(new Date());render()};
-$('importYesterdayBtn').onclick=()=>{
+let importSourceDate=null, importSelectedMeals=new Set(), importPendingItems=[];
+const importMealNames=[...meals];
+function openImportDialog(){
   const previous=new Date(selectedDate+'T12:00:00');
   previous.setDate(previous.getDate()-1);
-  const previousDate=isoDate(previous);
-  const source=data[previousDate]||[];
-  if(!source.length){
-    alert(`Aucun repas enregistré le ${prettyDate(previousDate)}.`);
-    return;
-  }
-  const count=source.length;
+  importSourceDate=isoDate(previous);
+  const source=data[importSourceDate]||[];
   const current=data[selectedDate]||[];
-  const message=`Importer les ${count} aliment${count>1?'s':''} de ${prettyDate(previousDate)} vers ${prettyDate(selectedDate)} ?\\n\\nLes repas actuels (${current.length} aliment${current.length>1?'s':''}) seront conservés. Les aliments importés seront ajoutés en plus.`;
-  if(!confirm(message)) return;
-  const copies=source.map((item,index)=>({
-    ...item,
-    id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`)
-  }));
+  $('importDateSummary').textContent=`${prettyDate(importSourceDate)} → ${prettyDate(selectedDate)}`;
+  $('importCurrentSummary').textContent=`${source.length} aliment${source.length>1?'s':''} disponible${source.length>1?'s':''} · ${current.length} déjà présent${current.length>1?'s':''} sur cette journée`;
+  importSelectedMeals=new Set();
+  $('importChoiceStep').hidden=false;$('importConfirmStep').hidden=true;
+  $('importDialogTitle').textContent='Choisir les repas';
+  const counts=Object.fromEntries(importMealNames.map(m=>[m,source.filter(x=>x.meal===m).length]));
+  $('importMealChoices').innerHTML=importMealNames.map(m=>`<button type="button" class="import-meal-choice" data-meal="${esc(m)}" ${counts[m]?'':'disabled'}><span>${esc(m)}</span><b>${counts[m]} aliment${counts[m]>1?'s':''}</b></button>`).join('')+
+    `<button type="button" class="import-meal-choice import-all-choice" data-meal="__all" ${source.length?'':'disabled'}><span>Tous les repas</span><b>${source.length} aliment${source.length>1?'s':''}</b></button>`;
+  $('importContinue').disabled=true;
+  document.querySelectorAll('.import-meal-choice').forEach(btn=>btn.onclick=()=>{
+    const meal=btn.dataset.meal;
+    if(meal==='__all'){
+      importSelectedMeals= new Set(['__all']);
+    }else{
+      importSelectedMeals.delete('__all');
+      if(importSelectedMeals.has(meal))importSelectedMeals.delete(meal);else importSelectedMeals.add(meal);
+    }
+    document.querySelectorAll('.import-meal-choice').forEach(b=>b.classList.toggle('selected',b.dataset.meal==='__all'?importSelectedMeals.has('__all'):importSelectedMeals.has(b.dataset.meal)));
+    const selected=source.filter(x=>importSelectedMeals.has('__all')||importSelectedMeals.has(x.meal)).length;
+    $('importContinue').disabled=selected===0;
+    $('importContinue').textContent=selected?`Continuer · ${selected} aliment${selected>1?'s':''}`:'Choisir les repas';
+  });
+  $('importDialog').showModal();
+}
+$('importYesterdayBtn').onclick=openImportDialog;
+$('importClose').onclick=()=>$('importDialog').close();
+$('importContinue').onclick=()=>{
+  const source=data[importSourceDate]||[];
+  importPendingItems=source.filter(x=>importSelectedMeals.has('__all')||importSelectedMeals.has(x.meal));
+  if(!importPendingItems.length)return;
+  const chosen=importSelectedMeals.has('__all')?'tous les repas':[...importSelectedMeals].join(', ');
+  $('importDialogTitle').textContent='Confirmer l’import';
+  $('importConfirmSummary').textContent=`Importer ${importPendingItems.length} aliment${importPendingItems.length>1?'s':''} (${chosen}) du ${prettyDate(importSourceDate)} vers le ${prettyDate(selectedDate)} ?`;
+  $('importChoiceStep').hidden=true;$('importConfirmStep').hidden=false;
+};
+$('importBack').onclick=()=>{
+  $('importChoiceStep').hidden=false;$('importConfirmStep').hidden=true;
+  $('importDialogTitle').textContent='Choisir les repas';
+};
+$('importConfirm').onclick=()=>{
+  const current=data[selectedDate]||[];
+  const copies=importPendingItems.map((item,index)=>({...item,id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`)}));
   data[selectedDate]=[...current,...copies];
-  save();
-  render();
-  alert(`${count} aliment${count>1?'s':''} importé${count>1?'s':''} avec succès.`);
+  save();$('importDialog').close();render();
+  importPendingItems=[];importSelectedMeals=new Set();
 };
 
 function showHistory(){$('historyDialog').showModal();renderHistory();renderBackupStatus()}
