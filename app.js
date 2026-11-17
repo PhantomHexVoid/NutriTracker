@@ -148,6 +148,7 @@ function editFood(id){
   $('foodKcal').value=fmt(item.calories/divisor);$('foodProtein').value=fmt(item.protein/divisor);
   $('foodCarbs').value=fmt(item.carbs/divisor);$('foodFat').value=fmt(item.fat/divisor);
   $('mealType').value=item.meal;
+  updateFavoriteButton(item);
   $('searchResults').innerHTML='';$('searchStatus').textContent='Modifie les informations puis enregistre.';
   document.querySelector('[data-tab="manual"]').click();$('foodDialog').showModal();
 }

@@ -117,3 +117,5 @@ V2.3.6 : import des repas de la veille via une fenêtre intégrée au design. Ch
 V2.3.6 : gestion des aliments favoris via une étoile dans la barre des repas et dans la fenêtre de modification d’un aliment. Les favoris sont conservés dans le stockage local et peuvent être ajoutés à la journée choisie dans le repas sélectionné.
 
 V2.3.6 : correction de la fermeture du bloc d’en-tête de la fenêtre aliment, qui provoquait un décalage horizontal de tout le formulaire sur iPhone. Les favoris et les données locales sont conservés.
+
+V2.3.7 : correction de l’affichage de l’étoile Favoris dans la fenêtre de modification : le bouton est maintenant activé et visible pour un aliment déjà enregistré.

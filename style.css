@@ -161,3 +161,9 @@ body[data-theme="dark"] .backup-panel{background:#17251e;border-color:#34483d}
 .favorite-add{width:42px;height:42px;border:0;border-radius:12px;background:#245b3b;color:#fff;font-size:24px;font-weight:700}
 .favorites-dialog::backdrop{background:#06100bd9;backdrop-filter:blur(5px)}
 @media(max-width:380px){.meal-actions{gap:5px}.favorite-open-btn{width:36px;height:40px;flex-basis:36px}.meal-actions .import-day-btn,.meal-actions .primary-btn{padding-left:10px;padding-right:10px}}
+
+/* V2.3.7 — rendre le contrôle favori visible dans l’édition */
+.food-favorite-toggle[hidden]{display:none !important}
+.food-head-actions{display:flex;align-items:center;gap:10px}
+.food-favorite-toggle{display:inline-grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border:1px solid #806b2e;border-radius:50%;background:#403719;color:#ffd34e;font-size:27px;line-height:1}
+.food-favorite-toggle.is-favorite{background:#554719;color:#ffdb55;box-shadow:0 0 0 2px rgba(255,211,78,.12)}
