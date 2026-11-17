@@ -143,3 +143,21 @@ body[data-theme="dark"] .backup-panel{background:#17251e;border-color:#34483d}
 .import-dialog .primary-btn:disabled{opacity:.42;cursor:not-allowed}
 .import-dialog .copy-dialog-note{line-height:1.5}
 .import-dialog::backdrop{background:#06100bd9;backdrop-filter:blur(5px)}
+
+/* NutriTracker 2.3.5 — favoris */
+.meal-actions{display:flex;align-items:center;gap:8px}
+.favorite-open-btn{width:42px;height:42px;flex:0 0 42px;border-radius:13px;border:1px solid #3b5a48;background:#20372c;color:#d9e8dd;font-size:25px;line-height:1;display:grid;place-items:center;padding:0}
+.favorite-open-btn:active{background:#2d5941}
+.food-head-actions{display:flex;align-items:center;gap:8px}
+.food-favorite-toggle{width:38px;height:38px;border:1px solid #3b5a48;border-radius:50%;background:#20372c;color:#dce9e1;font-size:25px;line-height:1}
+.food-favorite-toggle.is-favorite{color:#ffd34e;border-color:#806b2e;background:#403719}
+.favorites-dialog .favorites-list{display:flex;flex-direction:column;gap:9px}
+.favorite-item{display:flex;flex-direction:column;gap:10px;padding:12px;background:#1d3027;border:1px solid #30483b;border-radius:14px}
+.favorite-item-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.favorite-item-info strong{font-size:14px;color:#edf4ef}
+.favorite-item-info small{font-size:11px;color:#a6b7ad;line-height:1.45}
+.favorite-item-actions{display:flex;gap:8px;align-items:center}
+.favorite-meal{flex:1;min-width:0;margin:0;background:#14221c;color:#edf4ef;border-color:#3b5a48;font-size:16px}
+.favorite-add{width:42px;height:42px;border:0;border-radius:12px;background:#245b3b;color:#fff;font-size:24px;font-weight:700}
+.favorites-dialog::backdrop{background:#06100bd9;backdrop-filter:blur(5px)}
+@media(max-width:380px){.meal-actions{gap:5px}.favorite-open-btn{width:36px;height:40px;flex-basis:36px}.meal-actions .import-day-btn,.meal-actions .primary-btn{padding-left:10px;padding-right:10px}}

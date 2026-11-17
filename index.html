@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="NutriTrack">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png?v=231">
-  <link rel="stylesheet" href="style.css?v=234">
+  <link rel="stylesheet" href="style.css?v=235">
   <title>NutriTrack</title>
 </head>
 <body>
@@ -49,7 +49,7 @@
       <article class="macro-card fat"><div class="macro-top"><span>Lipides</span><span>●</span></div><strong id="fatNow">0 g</strong><div class="mini-progress"><i id="fatBar"></i></div><small id="fatMeta">Objectif : 70 g</small></article>
     </section>
 
-    <section class="section-head meal-section-head"><div><div class="eyebrow">TON ALIMENTATION</div><h2>Mes repas</h2></div><div class="meal-actions"><button class="secondary-btn import-day-btn" id="importYesterdayBtn" type="button">↓ Importer</button><button class="primary-btn" id="addBtn">＋ Ajouter</button></div></section>
+    <section class="section-head meal-section-head"><div><div class="eyebrow">TON ALIMENTATION</div><h2>Mes repas</h2></div><div class="meal-actions"><button class="favorite-open-btn" id="openFavorites" type="button" aria-label="Favoris" title="Favoris">☆</button><button class="secondary-btn import-day-btn" id="importYesterdayBtn" type="button">↓ Importer</button><button class="primary-btn" id="addBtn">＋ Ajouter</button></div></section>
     <div id="mealList" class="meal-list"></div>
 
     <section class="section-head history-head"><div><div class="eyebrow">TES PROGRÈS</div><h2>Historique récent</h2></div><button class="text-btn" id="historyBtn">Voir tout</button></section>
@@ -61,7 +61,7 @@
 
   <dialog id="foodDialog">
     <form method="dialog" class="dialog-shell" id="foodForm">
-      <div class="dialog-head"><div><div class="eyebrow">AJOUTER AU JOURNAL</div><h2>Un aliment</h2></div><button type="button" class="close-btn" id="closeFoodDialog" aria-label="Fermer">×</button></div>
+      <div class="dialog-head"><div><div class="eyebrow">AJOUTER AU JOURNAL</div><h2>Un aliment</h2></div><div class="food-head-actions"><button type="button" class="food-favorite-toggle" id="toggleFoodFavorite" aria-label="Ajouter aux favoris" title="Ajouter aux favoris" hidden>☆</button><button type="button" class="close-btn" id="closeFoodDialog" aria-label="Fermer">×</button></div>
       <label>Repas<select id="mealType"><option>Petit-déjeuner</option><option>Déjeuner</option><option>Dîner</option><option>Collation</option></select></label>
       <div class="tabs"><button type="button" class="tab active" data-tab="search">Rechercher</button><button type="button" class="tab" data-tab="manual">Saisie manuelle</button></div>
       <div id="searchPane">
@@ -94,7 +94,7 @@
       <label>Calories (kcal)<input id="goalCalories" type="number" min="1"></label>
       <div class="three-col"><label>Protéines (g)<input id="goalProtein" type="number" min="1"></label><label>Glucides (g)<input id="goalCarbs" type="number" min="1"></label><label>Lipides (g)<input id="goalFat" type="number" min="1"></label></div>
       <button class="primary-btn full" id="saveGoals" value="save">Enregistrer</button>
-      <p class="app-version">NutriTracker <span id="appVersion">v2.3.2</span> · by Phantom</p>
+      <p class="app-version">NutriTracker <span id="appVersion">v2.3.5</span> · by Phantom</p>
     </form>
   </dialog>
 
@@ -162,6 +162,19 @@
     </div>
   </dialog>
 
+
+
+  <dialog id="favoritesDialog" class="copy-dialog favorites-dialog">
+    <div class="dialog-shell">
+      <div class="dialog-head">
+        <div><div class="eyebrow">TA SÉLECTION</div><h2>Mes favoris</h2></div>
+        <button type="button" class="close-btn" id="closeFavorites" aria-label="Fermer">×</button>
+      </div>
+      <p class="copy-dialog-hint" id="favoritesEmpty" hidden>Aucun favori pour le moment. Ouvre un aliment déjà enregistré et touche l’étoile pour l’ajouter.</p>
+      <div id="favoritesList" class="favorites-list"></div>
+    </div>
+  </dialog>
+
   <dialog id="historyDialog">
     <div class="dialog-shell"><div class="dialog-head"><div><div class="eyebrow">TES DONNÉES</div><h2>Historique</h2></div><button class="close-btn" id="closeHistory">×</button></div><div id="fullHistory"></div><section class="backup-panel">
       <div class="eyebrow">PROTECTION DES DONNÉES</div>
@@ -177,6 +190,6 @@
   </div>
   <script>setTimeout(()=>{const s=document.getElementById("splash");if(s)s.classList.add("hide")},4000);</script>
   <script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
-  <script src="app.js?v=234"></script>
+  <script src="app.js?v=235"></script>
 </body>
 </html>

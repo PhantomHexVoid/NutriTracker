@@ -3,6 +3,7 @@ const defaults={calories:2000,protein:130,carbs:220,fat:70};
 function readStored(key,fallback){try{const value=JSON.parse(localStorage.getItem(key)||'null');return value&&typeof value==='object'?value:fallback}catch(e){return fallback}}
 let goals={...defaults,...readStored('nt-goals',{})};
 let data=readStored('nt-days',{});
+let favorites=readStored('nt-favorites',[]);
 let selectedDate=isoDate(new Date()), pendingFood=null, editingFoodId=null, foodValuesPer100=false;
 const meals=['Petit-déjeuner','Déjeuner','Dîner','Collation'];
 function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
@@ -75,7 +76,7 @@ function renderHistory(){
   $('historyPanel').innerHTML=dates.length?dates.map(d=>{let c=totals(data[d]).calories;return `<div class="history-row"><span>${new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</span><div class="history-track"><i style="width:${Math.min(100,c/goals.calories*100)}%"></i></div><b>${Math.round(c)} kcal</b></div>`}).join(''):'<div class="empty">Ton historique apparaîtra ici dès tes premiers repas.</div>';
   $('fullHistory').innerHTML=dates.length?dates.map(d=>{let t=totals(data[d]);return `<div class="history-entry">${prettyDate(d)}<b>${Math.round(t.calories)} kcal</b><div class="hint">Protéines ${fmt(t.protein)} g · Glucides ${fmt(t.carbs)} g · Lipides ${fmt(t.fat)} g</div></div>`}).join(''):'<p class="hint">Aucune journée enregistrée pour le moment.</p>';
 }
-function openFood(){pendingFood=null;editingFoodId=null;foodValuesPer100=true;setFoodFormMode();activeFoodSource='generic';document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b.dataset.source==='generic'));$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche dans la base Ciqual 2025 (aliments génériques).';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
+function openFood(){pendingFood=null;editingFoodId=null;updateFavoriteButton(null);foodValuesPer100=true;setFoodFormMode();activeFoodSource='generic';document.querySelectorAll('.source-tab').forEach(b=>b.classList.toggle('active',b.dataset.source==='generic'));$('foodName').value='';$('foodQty').value=100;$('foodKcal').value='';$('foodProtein').value='';$('foodCarbs').value='';$('foodFat').value='';$('foodSearch').value='';$('searchResults').innerHTML='';$('searchStatus').textContent='Recherche dans la base Ciqual 2025 (aliments génériques).';document.querySelector('[data-tab="search"]').click();$('foodDialog').showModal()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('searchPane').hidden=b.dataset.tab!=='search';$('manualPane').hidden=b.dataset.tab!=='manual'});
 $('addBtn').onclick=openFood;
 let activeFoodSource='generic';
@@ -99,6 +100,46 @@ function setFoodFormMode(){
   if(hint)hint.textContent='Renseigne les valeurs nutritionnelles pour 100 g, puis indique la quantité que tu as mangée. Le total sera calculé automatiquement.';
   $('saveFood').textContent=editingFoodId?'Enregistrer les modifications':'Ajouter au journal';
 }
+function favoriteKey(item){return String(item.name||'').trim().toLocaleLowerCase('fr')+'|'+Number(item.qty||0)+'|'+Number(item.calories||0)+'|'+Number(item.protein||0)+'|'+Number(item.carbs||0)+'|'+Number(item.fat||0)}
+function isFavorite(item){const key=favoriteKey(item);return favorites.some(x=>favoriteKey(x)===key)}
+function updateFavoriteButton(item){
+  const btn=$('toggleFoodFavorite');
+  if(!btn)return;
+  btn.hidden=!editingFoodId;
+  const active=!!(item&&isFavorite(item));
+  btn.textContent=active?'★':'☆';
+  btn.classList.toggle('is-favorite',active);
+  btn.setAttribute('aria-label',active?'Retirer des favoris':'Ajouter aux favoris');
+  btn.title=active?'Retirer des favoris':'Ajouter aux favoris';
+}
+function currentEditedFood(){
+  const qty=Number($('foodQty').value)||0, factor=qty/100;
+  return {name:$('foodName').value.trim(),qty,calories:Number($('foodKcal').value)*factor,protein:Number($('foodProtein').value)*factor,carbs:Number($('foodCarbs').value)*factor,fat:Number($('foodFat').value)*factor};
+}
+function renderFavorites(){
+  const list=$('favoritesList');if(!list)return;
+  $('favoritesEmpty').hidden=favorites.length>0;
+  list.innerHTML=favorites.map((item,index)=>`<div class="favorite-item"><div class="favorite-item-info"><strong>${esc(item.name)}</strong><small>${item.qty} g · ${Math.round(item.calories)} kcal · P ${fmt(item.protein)} g · G ${fmt(item.carbs)} g · L ${fmt(item.fat)} g</small></div><div class="favorite-item-actions"><select class="favorite-meal" data-index="${index}" aria-label="Choisir le repas"><option>Petit-déjeuner</option><option>Déjeuner</option><option>Dîner</option><option>Collation</option></select><button type="button" class="favorite-add" data-index="${index}" aria-label="Ajouter ${esc(item.name)}">＋</button></div></div>`).join('');
+  document.querySelectorAll('.favorite-add').forEach(btn=>btn.onclick=()=>{
+    const item=favorites[Number(btn.dataset.index)];if(!item)return;
+    const select=document.querySelector(`.favorite-meal[data-index="${btn.dataset.index}"]`);
+    const meal=select?select.value:'Petit-déjeuner';
+    const copy={...item,meal,id:(crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`)};
+    data[selectedDate]=[...(data[selectedDate]||[]),copy];save();render();$('favoritesDialog').close();
+  });
+}
+$('openFavorites').onclick=()=>{renderFavorites();$('favoritesDialog').showModal()};
+$('closeFavorites').onclick=()=>$('favoritesDialog').close();
+$('toggleFoodFavorite').onclick=()=>{
+  if(!editingFoodId)return;
+  const item=currentEditedFood();
+  if(!item.name||item.qty<=0)return;
+  const key=favoriteKey(item);
+  if(favorites.some(x=>favoriteKey(x)===key))favorites=favorites.filter(x=>favoriteKey(x)!==key);
+  else favorites.push(item);
+  localStorage.setItem('nt-favorites',JSON.stringify(favorites));
+  updateFavoriteButton(item);
+};
 function editFood(id){
   const item=day().find(x=>x.id===id);if(!item)return;
   editingFoodId=id;foodValuesPer100=true;pendingFood=null;setFoodFormMode();
@@ -174,8 +215,19 @@ $('saveFood').onclick=()=>{
   if(!name||qty<=0||!Number.isFinite(kcal)||!Number.isFinite(p)||!Number.isFinite(c)||!Number.isFinite(f)){alert('Complète le nom, la quantité et les valeurs nutritionnelles.');return}
   const factor=qty/100;
   const values={name,qty,meal:$('mealType').value,calories:kcal*factor,protein:p*factor,carbs:c*factor,fat:f*factor};
-  if(editingFoodId){const item=day().find(x=>x.id===editingFoodId);if(item)Object.assign(item,values)}
-  else day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),...values});
+  if(editingFoodId){
+    const item=day().find(x=>x.id===editingFoodId);
+    if(item){
+      const wasFavorite=isFavorite(item);
+      const oldKey=favoriteKey(item);
+      Object.assign(item,values);
+      if(wasFavorite){
+        favorites=favorites.filter(x=>favoriteKey(x)!==oldKey);
+        favorites.push({name:item.name,qty:item.qty,calories:item.calories,protein:item.protein,carbs:item.carbs,fat:item.fat});
+        localStorage.setItem('nt-favorites',JSON.stringify(favorites));
+      }
+    }
+  } else day().push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),...values});
   save();$('foodDialog').close();render()
 };
 $('settingsBtn').onclick=$('navSettings').onclick=()=>{for(const k of Object.keys(goals))$('goal'+k[0].toUpperCase()+k.slice(1)).value=goals[k];$('settingsDialog').showModal()};
